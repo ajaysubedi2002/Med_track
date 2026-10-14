@@ -1,0 +1,13 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# macOS archive metadata
+__MACOSX/
+
+# Local environment files
+.env
+.env.*
+!.env.example

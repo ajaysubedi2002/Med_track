@@ -1,0 +1,17 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio and local tooling
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test and coverage output
+TestResults/
+coverage/
+
+# Local development configuration
+appsettings.Local.json
