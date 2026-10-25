@@ -1,46 +1,58 @@
-# 💊 MediTrack — Daily Medicine & Health Tracker
+# MediTrack — Daily Medicine & Health Tracker
 
-A full-stack application to track daily medicines, log symptoms/mood, and monitor health adherence.
+A full-stack application to track daily medicines, log symptoms/mood, and monitor health adherence. Supports two roles — **Patient** and **Doctor** — with role-based dashboards and access control.
 
 ## Tech Stack
 
-| Layer      | Technology                                  |
-|------------|---------------------------------------------|
-| Frontend   | React 18 + TypeScript + Vite + Tailwind CSS |
-| Backend    | ASP.NET Core 8 Web API (C#)                |
-| Database   | PostgreSQL 14                               |
-| ORM        | Entity Framework Core 8 + Npgsql           |
-| Auth       | JWT (JSON Web Tokens)                       |
+| Layer      | Technology                              |
+|------------|-----------------------------------------|
+| Frontend   | React 18 + Vite + Tailwind CSS (JSX)    |
+| Backend    | ASP.NET Core 8 Web API (C#)             |
+| Database   | PostgreSQL                              |
+| ORM        | Entity Framework Core 8 + Npgsql        |
+| Auth       | JWT (JSON Web Tokens) + BCrypt          |
 
 ## Features
 
-- **User Authentication** — Register, Login with JWT tokens
-- **Medicine Management** — Add, edit, deactivate medicines with dosage & frequency
-- **Daily Logging** — Mark medicines as Taken/Missed/Skipped each day
-- **Mood Tracking** — Rate your mood (1-5) and log symptoms/notes
-- **Stats Dashboard** — Adherence %, current streak, weekly breakdown
-- **History** — View past logs grouped by date with expandable details
+### Patient
+- Register and log in with JWT authentication
+- View daily medicine schedule and mark each as Taken / Missed / Skipped
+- Track mood (1–5) and log symptoms/notes
+- View adherence stats — percentage, current streak, weekly breakdown
+- Browse full log history grouped by date
+
+### Doctor
+- Role-protected dashboard showing all linked patients
+- Search for patients by name or email and add/remove them
+- Prescribe medicines directly to a patient's schedule
+- View per-patient medicine and adherence summaries
 
 ## Project Structure
 
 ```
 MediTrack/
-├── backend/MediTrack.API/     # ASP.NET Core Web API
-│   ├── Controllers/           # Auth, Medicines, Logs endpoints
-│   ├── Models/                # Entities, DTOs, Enums
-│   ├── Services/              # Business logic (interfaces + implementations)
-│   ├── Data/                  # EF Core DbContext + configurations
+├── backend/MediTrack.API/
+│   ├── Controllers/           # Auth, Medicines, Logs, Doctor endpoints
+│   ├── Models/
+│   │   ├── Entities/          # User, Medicine, DailyLog, DoctorPatient
+│   │   ├── DTOs/              # Request/response shapes per domain
+│   │   └── Enums/             # Frequency, LogStatus, UserRole
+│   ├── Services/
+│   │   ├── Interfaces/        # IAuthService, IMedicineService, ILogService, IDoctorService
+│   │   └── Implementations/   # Business logic
+│   ├── Data/                  # EF Core DbContext + Fluent API configurations
 │   ├── Helpers/               # JWT token generation
 │   └── Middleware/            # Global exception handling
 │
-├── frontend/meditrack-ui/     # React SPA
-│   ├── src/components/        # Reusable UI components
-│   ├── src/pages/             # Page-level components
-│   ├── src/services/          # API client (Axios)
-│   ├── src/context/           # Auth context provider
-│   └── src/types/             # TypeScript interfaces
-│
-└── docs/plans/                # Architecture & implementation plan
+└── frontend/meditrack-ui/
+    └── src/
+        ├── components/        # dashboard, history, medicine, layout, icons
+        ├── pages/             # LoginPage, RegisterPage, DashboardPage,
+        │                      # MedicinesPage, HistoryPage,
+        │                      # DoctorDashboardPage, DoctorPatientsPage
+        ├── services/          # Axios API client
+        ├── context/           # Auth context provider
+        └── types/             # Shared type definitions
 ```
 
 ## Getting Started
@@ -49,7 +61,7 @@ MediTrack/
 
 - .NET 8 SDK
 - Node.js 18+
-- PostgreSQL 14+
+- PostgreSQL (running on port 5433)
 
 ### Database Setup
 
@@ -65,7 +77,8 @@ dotnet ef database update
 dotnet run
 ```
 
-The API runs at **http://localhost:5166** with Swagger UI at **http://localhost:5166/swagger**
+API runs at **http://localhost:5166**
+Swagger UI at **http://localhost:5166/swagger**
 
 ### Frontend
 
@@ -75,28 +88,64 @@ npm install
 npm run dev
 ```
 
-The app runs at **http://localhost:5173**
+App runs at **http://localhost:5173**
 
 ## API Endpoints
 
-| Method | Endpoint                  | Description                |
-|--------|---------------------------|----------------------------|
-| POST   | /api/auth/register        | Register new user          |
-| POST   | /api/auth/login           | Login & get JWT token      |
-| GET    | /api/auth/me              | Get current user           |
-| GET    | /api/medicines            | List active medicines      |
-| POST   | /api/medicines            | Add a medicine             |
-| PUT    | /api/medicines/{id}       | Update a medicine          |
-| DELETE | /api/medicines/{id}       | Deactivate a medicine      |
-| POST   | /api/logs                 | Log a medicine for a day   |
-| GET    | /api/logs?date=YYYY-MM-DD | Get logs for a date        |
-| GET    | /api/logs/history?days=30 | Get log history            |
-| GET    | /api/logs/stats           | Get adherence stats        |
+### Auth
+| Method | Endpoint            | Auth     | Description              |
+|--------|---------------------|----------|--------------------------|
+| POST   | /api/auth/register  | Public   | Register (Patient role)  |
+| POST   | /api/auth/login     | Public   | Login, returns JWT       |
+| GET    | /api/auth/me        | Required | Get current user profile |
+
+### Medicines
+| Method | Endpoint                               | Roles         | Description                      |
+|--------|----------------------------------------|---------------|----------------------------------|
+| GET    | /api/medicines                         | Any           | List all medicines for user      |
+| GET    | /api/medicines/{id}                    | Any           | Get a single medicine            |
+| POST   | /api/medicines                         | Doctor, Admin | Add a medicine                   |
+| PUT    | /api/medicines/{id}                    | Doctor, Admin | Update a medicine                |
+| DELETE | /api/medicines/{id}                    | Doctor, Admin | Deactivate a medicine            |
+| POST   | /api/patients/{patientId}/medicines    | Doctor        | Prescribe medicine to a patient  |
+
+### Logs
+| Method | Endpoint                      | Auth     | Description                   |
+|--------|-------------------------------|----------|-------------------------------|
+| POST   | /api/logs                     | Required | Log a medicine status for day |
+| GET    | /api/logs?date=YYYY-MM-DD     | Required | Get logs for a specific date  |
+| GET    | /api/logs/history?days=30     | Required | Get log history (last N days) |
+| GET    | /api/logs/stats               | Required | Get adherence statistics      |
+
+### Doctor
+| Method | Endpoint                              | Roles  | Description                    |
+|--------|---------------------------------------|--------|--------------------------------|
+| GET    | /api/doctor/dashboard                 | Doctor | Patient dashboard overview     |
+| GET    | /api/doctor/patients                  | Doctor | List linked patients           |
+| GET    | /api/doctor/patients/search?q=        | Doctor | Search patients by name/email  |
+| POST   | /api/doctor/patients/{patientId}      | Doctor | Link a patient                 |
+| DELETE | /api/doctor/patients/{patientId}      | Doctor | Unlink a patient               |
+
+## Creating a Doctor Account
+
+Registration always creates a Patient account. To create a Doctor, register normally then update the role in the database:
+
+```bash
+# Register via API first
+curl -X POST http://localhost:5166/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"doctor@example.com","password":"YourPassword","name":"Dr. Name"}'
+
+# Then promote to Doctor in PostgreSQL
+PGPASSWORD=<password> psql -h localhost -p 5433 -U <user> -d meditrack \
+  -c "UPDATE users SET \"Role\" = 1 WHERE \"Email\" = 'doctor@example.com';"
+```
 
 ## OOP Concepts Used
 
-- **Inheritance** — `BaseEntity` → `User`, `Medicine`, `DailyLog`
-- **Interfaces** — `IAuthService`, `IMedicineService`, `ILogService`
+- **Inheritance** — `BaseEntity` is the base for `User`, `Medicine`, `DailyLog`
+- **Interfaces** — `IAuthService`, `IMedicineService`, `ILogService`, `IDoctorService`
 - **Encapsulation** — Private setters with domain methods (`medicine.Deactivate()`, `log.SetStatus()`)
-- **Dependency Injection** — Services registered and injected via ASP.NET Core DI container
-- **Enums** — `Frequency`, `LogStatus` for type-safe status management
+- **Dependency Injection** — All services registered and resolved via ASP.NET Core DI
+- **Enums** — `Frequency`, `LogStatus`, `UserRole` for type-safe domain modeling
+- **Role-Based Authorization** — `[Authorize(Roles = "Doctor")]` guards doctor-only routes
