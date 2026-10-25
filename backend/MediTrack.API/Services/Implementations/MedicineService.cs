@@ -51,6 +51,32 @@ public class MedicineService : IMedicineService
         return MapToDto(medicine);
     }
 
+    public async Task<MedicineResponseDto> PrescribeAsync(Guid doctorId, Guid patientId, CreateMedicineDto dto)
+    {
+        // Verify the doctor-patient relationship exists
+        var linkExists = await _db.DoctorPatients
+            .AnyAsync(dp => dp.DoctorId == doctorId && dp.PatientId == patientId);
+
+        if (!linkExists)
+            throw new UnauthorizedAccessException(
+                "You are not assigned as the doctor for this patient.");
+
+        var medicine = new Medicine
+        {
+            UserId = patientId,
+            PrescribedByDoctorId = doctorId,
+            Name = dto.Name,
+            Dosage = dto.Dosage,
+            Frequency = dto.Frequency,
+            TimeOfDay = dto.TimeOfDay
+        };
+
+        _db.Medicines.Add(medicine);
+        await _db.SaveChangesAsync();
+
+        return MapToDto(medicine);
+    }
+
     public async Task<MedicineResponseDto> UpdateAsync(
         Guid userId, Guid medicineId, UpdateMedicineDto dto)
     {
@@ -97,6 +123,7 @@ public class MedicineService : IMedicineService
             },
             TimeOfDay = m.TimeOfDay,
             IsActive = m.IsActive,
+            PrescribedByDoctorId = m.PrescribedByDoctorId,
             CreatedAt = m.CreatedAt,
             UpdatedAt = m.UpdatedAt
         };
