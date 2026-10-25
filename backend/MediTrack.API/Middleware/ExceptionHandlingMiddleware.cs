@@ -3,6 +3,12 @@ using System.Text.Json;
 
 namespace MediTrack.API.Middleware;
 
+/// <summary>Thrown when a resource already exists (HTTP 409).</summary>
+public class ConflictException : Exception
+{
+    public ConflictException(string message) : base(message) { }
+}
+
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
@@ -32,8 +38,9 @@ public class ExceptionHandlingMiddleware
     {
         var (statusCode, message) = exception switch
         {
+            ConflictException e => (HttpStatusCode.Conflict, e.Message),
             InvalidOperationException e => (HttpStatusCode.BadRequest, e.Message),
-            UnauthorizedAccessException e => (HttpStatusCode.Unauthorized, e.Message),
+            UnauthorizedAccessException e => (HttpStatusCode.Forbidden, e.Message),
             KeyNotFoundException e => (HttpStatusCode.NotFound, e.Message),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };
