@@ -35,6 +35,8 @@ public class MedicinesController : ControllerBase
         return Ok(result);
     }
 
+    // Only Doctor or Admin can create medicines directly
+    [Authorize(Roles = "Doctor,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateMedicineDto dto)
     {
@@ -42,6 +44,7 @@ public class MedicinesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
+    [Authorize(Roles = "Doctor,Admin")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateMedicineDto dto)
     {
@@ -49,10 +52,35 @@ public class MedicinesController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = "Doctor,Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _medicineService.DeactivateAsync(GetUserId(), id);
         return NoContent();
+    }
+}
+
+// Separate controller for doctor prescribing to a patient
+[Authorize(Roles = "Doctor")]
+[ApiController]
+[Route("api/patients/{patientId:guid}/medicines")]
+public class PatientMedicinesController : ControllerBase
+{
+    private readonly IMedicineService _medicineService;
+
+    public PatientMedicinesController(IMedicineService medicineService)
+    {
+        _medicineService = medicineService;
+    }
+
+    private Guid GetUserId() =>
+        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    [HttpPost]
+    public async Task<IActionResult> Prescribe(Guid patientId, [FromBody] CreateMedicineDto dto)
+    {
+        var result = await _medicineService.PrescribeAsync(GetUserId(), patientId, dto);
+        return CreatedAtAction(nameof(Prescribe), new { patientId, id = result.Id }, result);
     }
 }
