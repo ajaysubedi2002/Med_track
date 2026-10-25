@@ -23,5 +23,11 @@ public class MedicineConfiguration : IEntityTypeConfiguration<Medicine>
             .WithMany(u => u.Medicines)
             .HasForeignKey(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(m => m.PrescribedByDoctor)
+            .WithMany()
+            .HasForeignKey(m => m.PrescribedByDoctorId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

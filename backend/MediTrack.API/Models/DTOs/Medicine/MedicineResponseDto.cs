@@ -11,6 +11,7 @@ public class MedicineResponseDto
     public string FrequencyText { get; set; } = string.Empty;
     public string? TimeOfDay { get; set; }
     public bool IsActive { get; set; }
+    public Guid? PrescribedByDoctorId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

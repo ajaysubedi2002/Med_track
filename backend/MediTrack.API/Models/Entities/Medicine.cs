@@ -5,6 +5,7 @@ namespace MediTrack.API.Models.Entities;
 public class Medicine : BaseEntity
 {
     public Guid UserId { get; set; }
+    public Guid? PrescribedByDoctorId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Dosage { get; set; } = string.Empty;
     public Frequency Frequency { get; set; }
@@ -13,6 +14,7 @@ public class Medicine : BaseEntity
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public User User { get; set; } = null!;
+    public User? PrescribedByDoctor { get; set; }
     public ICollection<DailyLog> DailyLogs { get; set; } = new List<DailyLog>();
 
     public void Deactivate()
