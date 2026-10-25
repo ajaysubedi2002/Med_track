@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using MediTrack.API.Models.Enums;
 using Microsoft.IdentityModel.Tokens;
 
 namespace MediTrack.API.Helpers;
@@ -14,7 +15,7 @@ public class JwtHelper
         _config = config;
     }
 
-    public string GenerateToken(Guid userId, string email, string name)
+    public string GenerateToken(Guid userId, string email, string name, UserRole role)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -24,7 +25,8 @@ public class JwtHelper
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Email, email),
-            new Claim(ClaimTypes.Name, name)
+            new Claim(ClaimTypes.Name, name),
+            new Claim(ClaimTypes.Role, role.ToString())
         };
 
         var token = new JwtSecurityToken(
