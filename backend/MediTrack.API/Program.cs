@@ -38,14 +38,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            // Map ClaimTypes.Role from the token
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role
         };
     });
+
+builder.Services.AddAuthorization();
 
 // Services (Dependency Injection)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 // CORS
 builder.Services.AddCors(options =>
