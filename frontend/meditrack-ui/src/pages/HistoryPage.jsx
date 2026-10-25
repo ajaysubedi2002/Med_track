@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { logApi } from "../services/api";
 import HistoryList from "../components/history/HistoryList";
-import type { DailyLog } from "../types";
 
 const periodOptions = [
   { value: 7, label: "Last 7 days" },
@@ -11,7 +10,7 @@ const periodOptions = [
 ];
 
 export default function HistoryPage() {
-  const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
 
@@ -34,7 +33,6 @@ export default function HistoryPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-800">History</h1>
-
         <select
           value={days}
           onChange={(e) => setDays(Number(e.target.value))}
@@ -51,10 +49,7 @@ export default function HistoryPage() {
       {loading ? (
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl border border-slate-200 p-5 h-16 animate-pulse"
-            />
+            <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 h-16 animate-pulse" />
           ))}
         </div>
       ) : (

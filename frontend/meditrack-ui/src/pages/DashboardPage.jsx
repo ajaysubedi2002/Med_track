@@ -5,13 +5,12 @@ import StatsCard from "../components/dashboard/StatsCard";
 import DailyChecklist from "../components/dashboard/DailyChecklist";
 import MoodSelector from "../components/dashboard/MoodSelector";
 import { CalendarIcon } from "../components/icons";
-import type { Medicine, DailyLog, Stats } from "../types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [todayLogs, setTodayLogs] = useState<DailyLog[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [medicines, setMedicines] = useState([]);
+  const [todayLogs, setTodayLogs] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const today = new Date().toISOString().split("T")[0];
@@ -37,12 +36,8 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleMoodSubmit = async (
-    mood: number,
-    symptoms: string,
-    notes: string
-  ) => {
-    if (medicines.length > 0 && todayLogs.length > 0) {
+  const handleMoodSubmit = async (mood, symptoms, notes) => {
+    if (todayLogs.length > 0) {
       try {
         await logApi.create({
           medicineId: todayLogs[0].medicineId,
@@ -68,7 +63,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">
           {greeting()}, {user?.name}
@@ -86,10 +80,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
       <StatsCard stats={stats} loading={loading} />
 
-      {/* Two-column layout for checklist + mood */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-7">
           <DailyChecklist

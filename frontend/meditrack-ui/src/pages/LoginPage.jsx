@@ -11,14 +11,15 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await login(email, password);
+      // Redirect is handled by App.jsx based on role
       navigate("/");
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -36,9 +37,7 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
               MediTrack
             </h1>
-            <p className="text-slate-400 mt-1 text-sm">
-              Track your daily medicine intake
-            </p>
+            <p className="text-slate-400 mt-1 text-sm">Track your daily medicine intake</p>
           </div>
 
           {error && (
@@ -87,10 +86,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-slate-400 mt-6">
             Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="text-teal-600 hover:text-teal-700 font-medium"
-            >
+            <Link to="/register" className="text-teal-600 hover:text-teal-700 font-medium">
               Create one
             </Link>
           </p>
