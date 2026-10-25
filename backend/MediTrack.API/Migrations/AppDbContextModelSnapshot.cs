@@ -65,6 +65,28 @@ namespace MediTrack.API.Migrations
                     b.ToTable("daily_logs", (string)null);
                 });
 
+            modelBuilder.Entity("MediTrack.API.Models.Entities.DoctorPatient", b =>
+                {
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("DoctorId", "PatientId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("doctor_patients", (string)null);
+                });
+
             modelBuilder.Entity("MediTrack.API.Models.Entities.Medicine", b =>
                 {
                     b.Property<Guid>("Id")
@@ -95,6 +117,9 @@ namespace MediTrack.API.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<Guid?>("PrescribedByDoctorId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("TimeOfDay")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -108,6 +133,8 @@ namespace MediTrack.API.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PrescribedByDoctorId");
 
                     b.HasIndex("UserId");
 
@@ -141,12 +168,32 @@ namespace MediTrack.API.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("Role")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@meditrack.com",
+                            Name = "Admin",
+                            PasswordHash = "$2a$11$qPPGjTByDjdl9j3JMlp/WexVANOZGJaEpvcQ0LTquvobscsr/VhnC",
+                            Role = 0
+                        });
                 });
 
             modelBuilder.Entity("MediTrack.API.Models.Entities.DailyLog", b =>
@@ -168,13 +215,39 @@ namespace MediTrack.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MediTrack.API.Models.Entities.DoctorPatient", b =>
+                {
+                    b.HasOne("MediTrack.API.Models.Entities.User", "Doctor")
+                        .WithMany("MyPatients")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MediTrack.API.Models.Entities.User", "Patient")
+                        .WithMany("MyDoctors")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("MediTrack.API.Models.Entities.Medicine", b =>
                 {
+                    b.HasOne("MediTrack.API.Models.Entities.User", "PrescribedByDoctor")
+                        .WithMany()
+                        .HasForeignKey("PrescribedByDoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("MediTrack.API.Models.Entities.User", "User")
                         .WithMany("Medicines")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("PrescribedByDoctor");
 
                     b.Navigation("User");
                 });
@@ -189,6 +262,10 @@ namespace MediTrack.API.Migrations
                     b.Navigation("DailyLogs");
 
                     b.Navigation("Medicines");
+
+                    b.Navigation("MyDoctors");
+
+                    b.Navigation("MyPatients");
                 });
 #pragma warning restore 612, 618
         }
