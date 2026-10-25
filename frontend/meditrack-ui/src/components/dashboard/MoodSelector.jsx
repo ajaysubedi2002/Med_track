@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { ActivityIcon } from "../icons";
 
-interface MoodSelectorProps {
-  onMoodSubmit: (mood: number, symptoms: string, notes: string) => void;
-}
-
 const moods = [
   { value: 1, label: "Bad", color: "bg-red-100 text-red-600 ring-red-300", activeColor: "bg-red-500 text-white ring-red-500" },
   { value: 2, label: "Poor", color: "bg-orange-100 text-orange-600 ring-orange-300", activeColor: "bg-orange-500 text-white ring-orange-500" },
@@ -13,8 +9,8 @@ const moods = [
   { value: 5, label: "Great", color: "bg-teal-100 text-teal-600 ring-teal-300", activeColor: "bg-teal-500 text-white ring-teal-500" },
 ];
 
-export default function MoodSelector({ onMoodSubmit }: MoodSelectorProps) {
-  const [selectedMood, setSelectedMood] = useState<number | null>(null);
+export default function MoodSelector({ onMoodSubmit }) {
+  const [selectedMood, setSelectedMood] = useState(null);
   const [symptoms, setSymptoms] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -49,15 +45,11 @@ export default function MoodSelector({ onMoodSubmit }: MoodSelectorProps) {
                 className={`flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? `${mood.activeColor} ring-2 shadow-sm scale-105`
-                    : `${mood.color} hover:ring-2 hover:scale-102`
+                    : `${mood.color} hover:ring-2`
                 }`}
               >
                 <span className="text-lg font-bold leading-none">{mood.value}</span>
-                <span
-                  className={`text-[10px] font-semibold uppercase tracking-wider ${
-                    isSelected ? "text-white/80" : ""
-                  }`}
-                >
+                <span className={`text-[10px] font-semibold uppercase tracking-wider ${isSelected ? "text-white/80" : ""}`}>
                   {mood.label}
                 </span>
               </button>

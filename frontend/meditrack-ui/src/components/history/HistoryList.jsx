@@ -1,16 +1,11 @@
 import { useState } from "react";
-import type { DailyLog } from "../../types";
 import DayDetail from "./DayDetail";
 import { ChevronDownIcon, ChevronUpIcon, CalendarIcon } from "../icons";
 
-interface HistoryListProps {
-  logs: DailyLog[];
-}
+export default function HistoryList({ logs }) {
+  const [expandedDate, setExpandedDate] = useState(null);
 
-export default function HistoryList({ logs }: HistoryListProps) {
-  const [expandedDate, setExpandedDate] = useState<string | null>(null);
-
-  const groupedByDate = logs.reduce<Record<string, DailyLog[]>>((acc, log) => {
+  const groupedByDate = logs.reduce((acc, log) => {
     const date = log.date;
     if (!acc[date]) acc[date] = [];
     acc[date].push(log);
@@ -39,29 +34,20 @@ export default function HistoryList({ logs }: HistoryListProps) {
     <div className="space-y-2 animate-fade-in">
       {dates.map((date) => {
         const dayLogs = groupedByDate[date];
-        const takenCount = dayLogs.filter(
-          (l) => l.statusText === "Taken"
-        ).length;
+        const takenCount = dayLogs.filter((l) => l.statusText === "Taken").length;
         const totalCount = dayLogs.length;
         const isExpanded = expandedDate === date;
         const allTaken = takenCount === totalCount;
         const progress = Math.round((takenCount / totalCount) * 100);
 
         return (
-          <div
-            key={date}
-            className="bg-white rounded-2xl border border-slate-200 overflow-hidden"
-          >
+          <div key={date} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <button
               onClick={() => setExpandedDate(isExpanded ? null : date)}
               className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-3.5">
-                <div
-                  className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                    allTaken ? "bg-emerald-500" : "bg-amber-400"
-                  }`}
-                />
+                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${allTaken ? "bg-emerald-500" : "bg-amber-400"}`} />
                 <div className="text-left">
                   <span className="font-semibold text-slate-800 text-sm">
                     {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
@@ -73,13 +59,10 @@ export default function HistoryList({ logs }: HistoryListProps) {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                {/* Mini progress bar */}
                 <div className="hidden sm:flex items-center gap-2.5">
                   <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${
-                        allTaken ? "bg-emerald-500" : "bg-amber-400"
-                      }`}
+                      className={`h-full rounded-full ${allTaken ? "bg-emerald-500" : "bg-amber-400"}`}
                       style={{ width: `${progress}%` }}
                     />
                   </div>

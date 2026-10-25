@@ -1,27 +1,16 @@
 import { useState } from "react";
 import { logApi } from "../../services/api";
-import type { Medicine, DailyLog } from "../../types";
 import { CheckCircleIcon, XCircleIcon, SkipIcon, PillIcon } from "../icons";
 
-interface DailyChecklistProps {
-  medicines: Medicine[];
-  todayLogs: DailyLog[];
-  onLogUpdated: () => void;
-}
-
-export default function DailyChecklist({
-  medicines,
-  todayLogs,
-  onLogUpdated,
-}: DailyChecklistProps) {
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+export default function DailyChecklist({ medicines, todayLogs, onLogUpdated }) {
+  const [loadingId, setLoadingId] = useState(null);
 
   const today = new Date().toISOString().split("T")[0];
 
-  const getLogForMedicine = (medicineId: string) =>
+  const getLogForMedicine = (medicineId) =>
     todayLogs.find((l) => l.medicineId === medicineId);
 
-  const handleLog = async (medicineId: string, status: number) => {
+  const handleLog = async (medicineId, status) => {
     setLoadingId(medicineId);
     try {
       await logApi.create({ medicineId, date: today, status });
@@ -49,13 +38,7 @@ export default function DailyChecklist({
         </div>
         <p className="text-slate-600 font-medium">No active medicines</p>
         <p className="text-slate-400 text-sm mt-1">
-          <a
-            href="/medicines"
-            className="text-teal-600 hover:text-teal-700 font-medium"
-          >
-            Add your first medicine
-          </a>{" "}
-          to start tracking
+          Your doctor will prescribe medicines for you.
         </p>
       </div>
     );
@@ -63,7 +46,6 @@ export default function DailyChecklist({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 mb-6 animate-fade-in overflow-hidden">
-      {/* Header with progress */}
       <div className="px-6 pt-5 pb-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-slate-800">
@@ -73,7 +55,6 @@ export default function DailyChecklist({
             {loggedCount} of {medicines.length} logged
           </span>
         </div>
-        {/* Progress bar */}
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-500 ease-out"
@@ -82,7 +63,6 @@ export default function DailyChecklist({
         </div>
       </div>
 
-      {/* Medicine list */}
       <div className="divide-y divide-slate-100">
         {medicines.map((med) => {
           const log = getLogForMedicine(med.id);
@@ -118,11 +98,7 @@ export default function DailyChecklist({
                   )}
                 </div>
                 <div>
-                  <p
-                    className={`font-medium text-sm ${
-                      log ? "text-slate-500" : "text-slate-800"
-                    }`}
-                  >
+                  <p className={`font-medium text-sm ${log ? "text-slate-500" : "text-slate-800"}`}>
                     {med.name}
                   </p>
                   <p className="text-xs text-slate-400 mt-0.5">

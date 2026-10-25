@@ -3,27 +3,14 @@ import {
   useContext,
   useState,
   useEffect,
-  type ReactNode,
 } from "react";
 import { authApi } from "../services/api";
-import type { User } from "../types";
 
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
-}
+const AuthContext = createContext(undefined);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
-  );
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser();
   }, [token]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     const { data } = await authApi.login({ email, password });
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
@@ -52,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    const { data } = await authApi.register({ email, password, name });
+  const register = async (name, email, password, phone) => {
+    const { data } = await authApi.register({ email, password, name, phone });
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     setToken(data.token);
@@ -67,9 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const isDoctor = user != null && user.role === "Doctor";
+  const isPatient = user != null && user.role === "Patient";
+
   return (
     <AuthContext.Provider
-      value={{ user, token, login, register, logout, isLoading }}
+      value={{ user, token, login, register, logout, isLoading, isDoctor, isPatient }}
     >
       {children}
     </AuthContext.Provider>

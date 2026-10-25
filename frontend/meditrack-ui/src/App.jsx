@@ -1,14 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import RoleProtectedRoute from "./components/layout/RoleProtectedRoute";
 import Navbar from "./components/layout/Navbar";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import MedicinesPage from "./pages/MedicinesPage";
 import HistoryPage from "./pages/HistoryPage";
+import DoctorDashboardPage from "./pages/DoctorDashboardPage";
+import DoctorPatientsPage from "./pages/DoctorPatientsPage";
 
-function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -17,10 +20,12 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AuthRedirect({ children }: { children: React.ReactNode }) {
-  const { token, isLoading } = useAuth();
+function AuthRedirect({ children }) {
+  const { token, isLoading, isDoctor } = useAuth();
   if (isLoading) return null;
-  if (token) return <Navigate to="/" replace />;
+  if (token) {
+    return <Navigate to={isDoctor ? "/doctor/dashboard" : "/"} replace />;
+  }
   return <>{children}</>;
 }
 
@@ -29,6 +34,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Auth routes */}
           <Route
             path="/login"
             element={
@@ -45,6 +51,8 @@ function App() {
               </AuthRedirect>
             }
           />
+
+          {/* Patient routes */}
           <Route
             path="/"
             element={
@@ -75,6 +83,29 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Doctor-only routes */}
+          <Route
+            path="/doctor/dashboard"
+            element={
+              <RoleProtectedRoute role="Doctor">
+                <AppLayout>
+                  <DoctorDashboardPage />
+                </AppLayout>
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/patients"
+            element={
+              <RoleProtectedRoute role="Doctor">
+                <AppLayout>
+                  <DoctorPatientsPage />
+                </AppLayout>
+              </RoleProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

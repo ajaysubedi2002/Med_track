@@ -7,24 +7,33 @@ import {
   HistoryIcon,
   LogOutIcon,
   UserIcon,
+  UsersIcon,
+  StethoscopeIcon,
 } from "../icons";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, isDoctor, isPatient } = useAuth();
   const location = useLocation();
 
-  const navLinks = [
+  const patientLinks = [
     { to: "/", label: "Dashboard", icon: LayoutDashboardIcon },
     { to: "/medicines", label: "Medicines", icon: PillIcon },
     { to: "/history", label: "History", icon: HistoryIcon },
   ];
+
+  const doctorLinks = [
+    { to: "/doctor/dashboard", label: "Dashboard", icon: StethoscopeIcon },
+    { to: "/doctor/patients", label: "My Patients", icon: UsersIcon },
+  ];
+
+  const navLinks = isDoctor ? doctorLinks : isPatient ? patientLinks : [];
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <Link
-            to="/"
+            to={isDoctor ? "/doctor/dashboard" : "/"}
             className="flex items-center gap-2.5 group"
           >
             <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
@@ -60,9 +69,16 @@ export default function Navbar() {
               <div className="w-6 h-6 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full flex items-center justify-center">
                 <UserIcon size={13} className="text-white" />
               </div>
-              <span className="text-sm font-medium text-slate-700 hidden sm:inline">
-                {user?.name}
-              </span>
+              <div className="hidden sm:flex flex-col">
+                <span className="text-sm font-medium text-slate-700 leading-none">
+                  {user?.name}
+                </span>
+                {user?.role && (
+                  <span className="text-[10px] text-slate-400 mt-0.5 capitalize">
+                    {user.role}
+                  </span>
+                )}
+              </div>
             </div>
             <button
               onClick={logout}

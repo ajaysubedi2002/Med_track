@@ -1,11 +1,6 @@
-import type { DailyLog } from "../../types";
 import { CheckCircleIcon, XCircleIcon, SkipIcon } from "../icons";
 
-interface DayDetailProps {
-  logs: DailyLog[];
-}
-
-const moodLabels: Record<number, string> = {
+const moodLabels = {
   1: "Bad",
   2: "Poor",
   3: "Okay",
@@ -13,7 +8,7 @@ const moodLabels: Record<number, string> = {
   5: "Great",
 };
 
-const moodColors: Record<number, string> = {
+const moodColors = {
   1: "bg-red-100 text-red-600",
   2: "bg-orange-100 text-orange-600",
   3: "bg-amber-100 text-amber-600",
@@ -21,7 +16,7 @@ const moodColors: Record<number, string> = {
   5: "bg-teal-100 text-teal-600",
 };
 
-export default function DayDetail({ logs }: DayDetailProps) {
+export default function DayDetail({ logs }) {
   return (
     <div className="space-y-1.5 mt-2">
       {logs.map((log) => (
@@ -37,9 +32,7 @@ export default function DayDetail({ logs }: DayDetailProps) {
             ) : (
               <SkipIcon size={15} className="text-amber-400" />
             )}
-            <span className="font-medium text-slate-700">
-              {log.medicineName}
-            </span>
+            <span className="font-medium text-slate-700">{log.medicineName}</span>
             <span className="text-slate-400">{log.medicineDosage}</span>
           </div>
           <div className="flex items-center gap-2">

@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Medicine, CreateMedicine } from "../../types";
 import { PillIcon } from "../icons";
-
-interface MedicineFormProps {
-  medicine?: Medicine | null;
-  onSubmit: (data: CreateMedicine) => void;
-  onCancel: () => void;
-}
 
 const frequencyOptions = [
   { value: 0, label: "Once Daily" },
@@ -15,11 +8,7 @@ const frequencyOptions = [
   { value: 3, label: "Weekly" },
 ];
 
-export default function MedicineForm({
-  medicine,
-  onSubmit,
-  onCancel,
-}: MedicineFormProps) {
+export default function MedicineForm({ medicine, onSubmit, onCancel }) {
   const [name, setName] = useState("");
   const [dosage, setDosage] = useState("");
   const [frequency, setFrequency] = useState(0);
@@ -34,7 +23,7 @@ export default function MedicineForm({
     }
   }, [medicine]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
       name,
@@ -110,9 +99,7 @@ export default function MedicineForm({
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
               Time of Day
-              <span className="text-slate-400 font-normal normal-case tracking-normal ml-1">
-                (optional)
-              </span>
+              <span className="text-slate-400 font-normal normal-case tracking-normal ml-1">(optional)</span>
             </label>
             <input
               type="text"
