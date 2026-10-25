@@ -2,6 +2,7 @@ using MediTrack.API.Data;
 using MediTrack.API.Helpers;
 using MediTrack.API.Models.DTOs.Auth;
 using MediTrack.API.Models.Entities;
+using MediTrack.API.Models.Enums;
 using MediTrack.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,25 +27,21 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = dto.Email,
-            Name = dto.Name
+            Name = dto.Name,
+            Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(),
+            Role = UserRole.Patient
         };
         user.SetPassword(BCrypt.Net.BCrypt.HashPassword(dto.Password));
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        var token = _jwt.GenerateToken(user.Id, user.Email, user.Name);
+        var token = _jwt.GenerateToken(user.Id, user.Email, user.Name, user.Role);
 
         return new AuthResponseDto
         {
             Token = token,
-            User = new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Email = user.Email,
-                CreatedAt = user.CreatedAt
-            }
+            User = MapToUserDto(user)
         };
     }
 
@@ -54,18 +51,12 @@ public class AuthService : IAuthService
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Invalid email or password.");
 
-        var token = _jwt.GenerateToken(user.Id, user.Email, user.Name);
+        var token = _jwt.GenerateToken(user.Id, user.Email, user.Name, user.Role);
 
         return new AuthResponseDto
         {
             Token = token,
-            User = new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Email = user.Email,
-                CreatedAt = user.CreatedAt
-            }
+            User = MapToUserDto(user)
         };
     }
 
@@ -74,12 +65,16 @@ public class AuthService : IAuthService
         var user = await _db.Users.FindAsync(userId)
             ?? throw new KeyNotFoundException("User not found.");
 
-        return new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt
-        };
+        return MapToUserDto(user);
     }
+
+    private static UserDto MapToUserDto(User user) => new UserDto
+    {
+        Id = user.Id,
+        Name = user.Name,
+        Email = user.Email,
+        Phone = user.Phone,
+        Role = user.Role.ToString(),
+        CreatedAt = user.CreatedAt
+    };
 }
