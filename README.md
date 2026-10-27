@@ -112,23 +112,13 @@ From the repository root:
 docker compose up --build
 ```
 
-This starts the frontend at **http://localhost:3000** and the API at **http://localhost:8080**. PostgreSQL is available to the Compose services through the internal hostname `postgres`; it is not exposed on the host by default. The migration service applies pending EF Core migrations before the API starts. Stop the services with `docker compose down`; add `-v` to also remove the persisted database volume.
-
-#### Live development with Docker
-
-Use the development override when actively changing source code:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-```
-
-After the initial build, source files are bind-mounted into the containers. The backend runs with `dotnet watch`, and the frontend runs with Vite HMR, so code changes are reflected without rebuilding the images.
+This starts the live-reload frontend at **http://localhost:5173** and the API at **http://localhost:8080**. Source files are bind-mounted into the containers, the backend runs with `dotnet watch`, and the frontend runs with Vite HMR, so code changes are reflected without rebuilding the images. PostgreSQL is also available at **localhost:5433**. The migration service applies pending EF Core migrations before the API starts. Stop the services with `docker compose down`; add `-v` to also remove the persisted database volume.
 
 Development URLs:
 
 - Frontend: **http://localhost:5173**
 - API: **http://localhost:8080**
-- PostgreSQL: **localhost:5433** (development override only)
+- PostgreSQL: **localhost:5433**
 
 ### Frontend
 
@@ -180,7 +170,7 @@ App runs at **http://localhost:5173**
 
 Registration always creates a Patient account. Start the Docker services, register the account through the API, then promote the account to Doctor in PostgreSQL.
 
-### Production-like Docker setup
+### Docker setup
 
 Start the services:
 
@@ -201,28 +191,7 @@ docker compose exec postgres psql \
   -c "UPDATE users SET \"Role\" = 1 WHERE \"Email\" = 'doctor@example.com';"
 ```
 
-### Live-development Docker setup
-
-Start the live-reload services:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-```
-
-Register and promote the account:
-
-```bash
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"doctor@example.com","password":"YourPassword","name":"Dr. Name"}'
-
-docker compose -f docker-compose.yml -f docker-compose.dev.yml exec postgres psql \
-  -U meditrack \
-  -d meditrack \
-  -c "UPDATE users SET \"Role\" = 1 WHERE \"Email\" = 'doctor@example.com';"
-```
-
-The account can then log in through the frontend at http://localhost:3000 in production-like mode or http://localhost:5173 in live-development mode.
+The account can then log in through the frontend at http://localhost:5173.
 
 ## OOP Concepts Used
 
