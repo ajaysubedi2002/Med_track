@@ -1,19 +1,20 @@
-FROM node:22-alpine AS build
+# Use the official Node image
+FROM node:20-alpine
+
+# Set the working directory inside the container
 WORKDIR /app
 
+# Copy dependency files first to leverage Docker caching
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund
 
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
 COPY . .
-ARG VITE_API_URL=/api
-ENV VITE_API_URL=${VITE_API_URL}
-RUN npm run build
 
-FROM nginx:1.27-alpine AS runtime
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+# Expose the Vite development port
+EXPOSE 5173
 
-EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget --quiet --output-document=/dev/null http://localhost/ || exit 1
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+# Start Vite and listen on all container interfaces
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
