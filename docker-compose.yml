@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    volumes:
+      - meditrack-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  api:
+    build:
+      context: ./backend/MediTrack.API
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  migrations:
+    build:
+      context: ./backend/MediTrack.API
+      dockerfile: Dockerfile
+      target: migrations
+    env_file:
+      - ./.env
+    command: ["dotnet", "ef", "database", "update", "--project", "MediTrack.API.csproj"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend/meditrack-ui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  meditrack-postgres-data:
