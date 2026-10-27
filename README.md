@@ -61,7 +61,7 @@ MediTrack/
 
 - .NET 8 SDK
 - Node.js 18+
-- PostgreSQL (running on port 5433)
+- PostgreSQL (running in Docker)
 
 ### Database Setup
 
@@ -79,6 +79,56 @@ dotnet run
 
 API runs at **http://localhost:5166**
 Swagger UI at **http://localhost:5166/swagger**
+
+#### Run with Docker
+
+Build and run the backend from the API project directory:
+
+```bash
+cd backend/MediTrack.API
+docker build -t meditrack-api .
+docker run --rm --add-host=host.docker.internal:host-gateway -p 8080:8080 \
+  -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5433;Database=meditrack;Username=<user>;Password=<password>" \
+  -e Jwt__Key="YourSuperSecretKeyThatIsAtLeast32Characters!" \
+  -e Jwt__Issuer="MediTrack" \
+  -e Jwt__Audience="MediTrackUsers" \
+  -e Jwt__ExpiryInDays=7 \
+  meditrack-api
+```
+
+The containerized API runs at **http://localhost:8080**. Use a database hostname reachable from the container instead of `localhost`.
+
+#### Run the backend and PostgreSQL with Docker Compose
+
+Copy the environment template and update the database or JWT values as needed:
+
+```bash
+cp .env.example .env
+```
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+This starts the frontend at **http://localhost:3000** and the API at **http://localhost:8080**. PostgreSQL is available to the Compose services through the internal hostname `postgres`; it is not exposed on the host by default. The migration service applies pending EF Core migrations before the API starts. Stop the services with `docker compose down`; add `-v` to also remove the persisted database volume.
+
+#### Live development with Docker
+
+Use the development override when actively changing source code:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+After the initial build, source files are bind-mounted into the containers. The backend runs with `dotnet watch`, and the frontend runs with Vite HMR, so code changes are reflected without rebuilding the images.
+
+Development URLs:
+
+- Frontend: **http://localhost:5173**
+- API: **http://localhost:8080**
+- PostgreSQL: **localhost:5433** (development override only)
 
 ### Frontend
 
@@ -128,18 +178,51 @@ App runs at **http://localhost:5173**
 
 ## Creating a Doctor Account
 
-Registration always creates a Patient account. To create a Doctor, register normally then update the role in the database:
+Registration always creates a Patient account. Start the Docker services, register the account through the API, then promote the account to Doctor in PostgreSQL.
+
+### Production-like Docker setup
+
+Start the services:
+
+```bash
+docker compose up --build
+```
 
 ```bash
 # Register via API first
-curl -X POST http://localhost:5166/api/auth/register \
+curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"doctor@example.com","password":"YourPassword","name":"Dr. Name"}'
 
-# Then promote to Doctor in PostgreSQL
-PGPASSWORD=<password> psql -h localhost -p 5433 -U <user> -d meditrack \
+# Promote the account to Doctor inside the PostgreSQL container
+docker compose exec postgres psql \
+  -U meditrack \
+  -d meditrack \
   -c "UPDATE users SET \"Role\" = 1 WHERE \"Email\" = 'doctor@example.com';"
 ```
+
+### Live-development Docker setup
+
+Start the live-reload services:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+Register and promote the account:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"doctor@example.com","password":"YourPassword","name":"Dr. Name"}'
+
+docker compose -f docker-compose.yml -f docker-compose.dev.yml exec postgres psql \
+  -U meditrack \
+  -d meditrack \
+  -c "UPDATE users SET \"Role\" = 1 WHERE \"Email\" = 'doctor@example.com';"
+```
+
+The account can then log in through the frontend at http://localhost:3000 in production-like mode or http://localhost:5173 in live-development mode.
 
 ## OOP Concepts Used
 
