@@ -9,7 +9,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 // Load .env file into environment variables (dev/local only)
-DotNetEnv.Env.Load();
+var rootEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "../../.env");
+if (File.Exists(rootEnvPath))
+{
+    DotNetEnv.Env.Load(rootEnvPath);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
